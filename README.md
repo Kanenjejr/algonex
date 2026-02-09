@@ -8,7 +8,7 @@
 
 # Local Installation
 
-- run `` git clone https://github.com/ghozali25/POS-System.git ``
+- run `` git clone https://github.com/Kanenjejr/algonex.git ``
 - run ``composer install `` 
 - run `` npm install ``
 - run ``npm run dev``
@@ -21,7 +21,7 @@
 - then visit `` http://localhost:8000 or http://127.0.0.1:8000 ``.
 
 # Admin Credentials
-> Email: super.admin@test.com || Password: 12345678
+> Email: kanenje17@gmail,com || Password: nenje@123
 
 ## Triangle POS Features
 
