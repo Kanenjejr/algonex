@@ -1,0 +1,108 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\PrdStock;
+
+class SalesTransactionValidator
+{
+    public static function validate($companyUnitId, $items)
+    {
+        $errors = [];
+
+        $affectStock = SalesTypeResolver::affectStock($companyUnitId);
+
+        /*
+        |--------------------------------------------------------------------------
+        | NON STOCK SALES
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$affectStock) {
+            return $errors;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | STOCK VALIDATION
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($items as $item) {
+
+            $stock = PrdStock::where('prd_id', $item['product_id'])
+                ->where('company_id', $item['company_id'])
+                ->where('work_point_id', $item['work_point_id'])
+                ->first();
+
+            /*
+            |--------------------------------------------------------------------------
+            | STOCK RECORD NOT FOUND
+            |--------------------------------------------------------------------------
+            */
+
+            if (!$stock) {
+
+                $errors[] = [
+                    'product_id' => $item['product_id'],
+                    'message' => 'Stock record not found'
+                ];
+
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | INSUFFICIENT STOCK
+            |--------------------------------------------------------------------------
+            */
+
+            if ($stock->avlb_qnty < $item['qty']) {
+
+                $errors[] = [
+                    'product_id' => $item['product_id'],
+                    'available_stock' => $stock->avlb_qnty,
+                    'requested_qty' => $item['qty'],
+                    'message' => 'Insufficient stock'
+                ];
+            }
+        }
+
+        return $errors;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | QUICK CHECK
+    |--------------------------------------------------------------------------
+    */
+
+    public static function hasErrors($companyUnitId, $items)
+    {
+        return count(
+            self::validate($companyUnitId, $items)
+        ) > 0;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET STOCK
+    |--------------------------------------------------------------------------
+    */
+
+    public static function getAvailableStock(
+        $productId,
+        $companyId,
+        $workPointId
+    ) {
+
+        $stock = PrdStock::where('prd_id', $productId)
+            ->where('company_id', $companyId)
+            ->where('work_point_id', $workPointId)
+            ->first();
+
+        return $stock
+            ? $stock->avlb_qnty
+            : 0;
+    }
+}
